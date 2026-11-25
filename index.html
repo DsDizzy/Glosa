@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Glosa</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+/* VOICE: a friendly street-smart tutor: quick, warm, never cluttered
+   IDEA: little paper name-tags hung on the real world, like labels beside museum pieces
+   PICTURE: the camera stage itself, translucent tags at its edges with thin leader lines to each object
+   COLOUR and TYPE: paper white and ink, vermilion for the word you are learning; Baloo 2 for target words
+   LAYOUT: phone app shell: header chips, one panel at a time, bottom tabs; the stage comes first */
+:root{color-scheme:light dark;--bg:light-dark(#f4f1ea,#111214);--card:light-dark(#fff,#1b1d21);--line:light-dark(#e2ddd2,#2c2f34);--ink:light-dark(#17181b,#f2efe9);--mute:light-dark(#6b6861,#a3a09a);--acc:#ff5a36;--acc2:light-dark(#1d6b74,#62c6cf);--good:light-dark(#2f7d4f,#6fd39a);--bad:light-dark(#b3261e,#ff8a80);--hand:"Baloo 2",system-ui,sans-serif}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans",sans-serif;overflow-x:clip}
+button,input,select,textarea{font:inherit;color:inherit}button{cursor:pointer}
+:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+.app{max-width:760px;margin:0 auto;padding:0 14px 100px}
+header{display:flex;align-items:center;gap:8px;padding:12px 0 10px;position:sticky;top:0;background:var(--bg);z-index:5}
+.logo{font:800 28px/1 var(--hand);margin:0}.logo b{color:var(--acc)}
+.chips{margin-left:auto;display:flex;gap:6px;align-items:center}
+.chip{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:0 12px;min-height:44px;display:inline-flex;align-items:center;gap:6px;font-size:14px;white-space:nowrap}
+.bar{width:40px;height:6px;border-radius:3px;background:var(--line);overflow:hidden;display:inline-block}.bar i{display:block;height:100%;background:var(--acc)}
+.iconbtn{width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:var(--card);display:grid;place-items:center;padding:0;flex:none}
+svg.i{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.panel{display:none}.panel.on{display:block}
+h2{font:700 24px/1.1 var(--hand);margin:8px 0 2px}
+.sub{color:var(--mute);margin:0 0 12px;font-size:15px}
+.stage{position:relative;height:min(64vh,580px);min-height:360px;border-radius:22px;overflow:hidden;background:#0d0e10;color:#fff}
+.stage video,.stage img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:none}
+.stage svg.lines{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+#tags{position:absolute;inset:0;pointer-events:none}
+.tag{pointer-events:auto;position:absolute;max-width:46%;background:rgba(255,255,255,var(--op,.8));color:#141518;border-radius:12px;padding:6px 10px 6px 12px;box-shadow:0 4px 14px rgba(0,0,0,.28);border:0;text-align:start;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);transition:top .25s}
+.tag b{display:block;font:700 19px/1.15 var(--hand)}
+.tag small{display:block;font-size:12px;color:#55534f;line-height:1.25}
+.tag.hit{background:var(--acc);color:#fff}.tag.hit small{color:#ffe3dc}
+.tag.l{left:8px}.tag.r{right:8px}
+.empty{position:absolute;inset:0;display:grid;place-content:center;justify-items:center;gap:14px;text-align:center;padding:24px;background:radial-gradient(120% 90% at 50% 115%,#4a1d12 0%,#0d0e10 62%)}
+.empty h3{font:800 clamp(30px,8vw,44px)/1.05 var(--hand);margin:0;text-wrap:balance}.empty h3 b{color:var(--acc)}
+.empty p{margin:0;max-width:32ch;color:#d9d5cf;font-size:15px}
+.demo{position:relative;width:min(280px,80%);height:84px}
+.demo .tag{position:absolute;top:8px;left:0;max-width:none}.demo .tag.r{left:auto;right:0;top:38px}
+.status{position:absolute;left:12px;right:12px;bottom:12px;font-size:14px;background:rgba(0,0,0,.62);border-radius:10px;padding:8px 12px;display:none}
+.stagebar{position:absolute;top:10px;left:50%;transform:translateX(-50%);display:none;gap:6px}
+.stagebar button,.stagebar label{background:rgba(0,0,0,.55);color:#fff;border:0;border-radius:999px;min-height:40px;padding:0 14px;font-size:14px;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;cursor:pointer}
+.stagebar .on{background:var(--acc)}
+.btn{min-height:48px;border-radius:14px;border:0;padding:0 18px;background:var(--acc);color:#fff;font-weight:650;display:inline-flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;white-space:nowrap}
+.btn.ghost{background:transparent;border:1.5px solid currentColor;color:inherit}
+.btn.soft{background:var(--card);color:var(--ink);border:1px solid var(--line)}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.ask{display:flex;gap:8px;margin-top:12px}
+.field{flex:1;min-height:48px;border-radius:14px;border:1px solid var(--line);background:var(--card);padding:0 14px;font-size:16px;width:100%}
+textarea.field{padding:10px 14px;min-height:80px;resize:vertical}
+.mic{width:48px;height:48px;border-radius:50%;border:0;background:var(--ink);color:var(--bg);display:grid;place-items:center;flex:none}
+.mic.on{background:var(--acc);color:#fff;animation:pulse 1.2s infinite}
+@keyframes pulse{50%{box-shadow:0 0 0 8px rgba(255,90,54,.25)}}
+@media (prefers-reduced-motion:reduce){.mic.on{animation:none}.tag{transition:none}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;margin-top:12px}
+.tw{font:700 30px/1.15 var(--hand);margin:0}.tw.big{font-size:clamp(32px,9vw,46px)}
+.rom{color:var(--acc2);font-size:15px;margin:2px 0 0}
+.en{color:var(--mute);margin:4px 0 0}
+.play{border:0;background:none;color:var(--acc);font-weight:650;min-height:44px;padding:0 4px;display:inline-flex;align-items:center;gap:6px}
+.kicker{font-size:13px;color:var(--mute);margin:0 0 6px}
+.chat{display:flex;flex-direction:column;gap:10px;margin-top:12px}
+.msg{max-width:90%;border-radius:18px;padding:10px 14px}
+.msg.me{align-self:flex-end;background:var(--ink);color:var(--bg)}
+.msg.ai{align-self:flex-start;background:var(--card);border:1px solid var(--line)}
+.msg .tw{font-size:22px}
+.fix{margin-top:8px;border-left:3px solid var(--acc);padding:2px 0 2px 10px;font-size:14px}
+.choices{display:grid;gap:8px;margin-top:12px}
+.choice{min-height:52px;border-radius:14px;border:1px solid var(--line);background:var(--card);text-align:start;padding:8px 14px}
+.choice.ok{border-color:var(--good);background:color-mix(in srgb,var(--good) 16%,var(--card))}
+.choice.no{border-color:var(--bad);background:color-mix(in srgb,var(--bad) 12%,var(--card))}
+.fb{font-weight:650;margin:10px 0 0}.fb.ok{color:var(--good)}.fb.no{color:var(--bad)}
+.prog{display:flex;gap:4px;margin-bottom:10px}.prog i{flex:1;height:5px;border-radius:3px;background:var(--line)}.prog i.d{background:var(--acc)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.seg button{border:0;background:var(--card);min-height:44px;padding:0 14px}
+.seg button[aria-pressed=true]{background:var(--ink);color:var(--bg)}
+.line{padding:10px 0;border-bottom:1px solid var(--line)}.line:last-child{border:0}
+.line .o{color:var(--mute);font-size:14px;margin:0}
+.line .t{font:600 20px/1.25 var(--hand);margin:2px 0 0}
+.partial{color:var(--mute);font-style:italic;min-height:24px;margin:8px 0 0}
+.who{font-size:12px;font-weight:700;color:var(--acc2)}.who.you{color:var(--acc)}
+.words{list-style:none;padding:0;margin:8px 0 0}
+.words li{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line)}
+.words .tw{font-size:22px}.words .meta{font-size:13px;color:var(--mute)}
+.count{margin-left:auto;font-size:13px;color:var(--mute);white-space:nowrap}
+.note{font-size:13px;color:var(--mute)}
+.warn{font-size:14px;background:color-mix(in srgb,var(--acc) 12%,var(--card));border-radius:12px;padding:10px 12px;margin-top:12px}
+nav.tabs{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(5,minmax(0,1fr));padding-bottom:env(safe-area-inset-bottom);z-index:10}
+nav.tabs button{background:none;border:0;min-height:62px;font-size:12px;color:var(--mute);display:grid;place-items:center;align-content:center;gap:2px}
+nav.tabs button svg{width:22px;height:22px}
+nav.tabs button[aria-selected=true]{color:var(--acc);font-weight:650}
+.sheet{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:flex-end;justify-content:center;z-index:20}
+.sheet.on{display:flex}
+.sheet>div{background:var(--bg);width:100%;max-width:560px;max-height:88vh;overflow:auto;border-radius:22px 22px 0 0;padding:18px 18px calc(24px + env(safe-area-inset-bottom))}
+.set{display:grid;gap:6px;margin-top:14px}.set label{font-weight:600;font-size:15px}
+select.field{appearance:auto}
+.sw{display:flex;align-items:center;gap:10px;min-height:44px}.sw input{width:22px;height:22px;accent-color:var(--acc)}
+#toast{position:fixed;left:50%;bottom:86px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;font-size:14px;display:none;z-index:30;max-width:90vw;text-align:center}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+  <h1 class="logo">Glo<b>sa</b></h1>
+  <div class="chips">
+    <button class="chip" id="langChip" aria-label="Change language"></button>
+    <button class="chip" id="lvlChip" aria-label="Level"></button>
+    <button class="iconbtn" id="setBtn" aria-label="Settings"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
+  </div>
+</header>
+
+<section class="panel on" id="p-look">
+  <div class="stage" id="stage">
+    <video id="vid" playsinline muted></video><img id="still" alt="Your photo">
+    <svg class="lines" id="lines"></svg><div id="tags"></div>
+    <div class="empty" id="empty">
+      <div class="demo" aria-hidden="true"><span class="tag"><b id="demo1">el carro</b><small>car</small></span><span class="tag r"><b id="demo2">el semáforo</b><small>traffic light</small></span></div>
+      <h3>Point at the world.<br>See it in <b id="emptyLang">Spanish</b>.</h3>
+      <p id="emptyMsg">Snap a photo and every useful thing in it gets a tag. Tap a tag to hear it.</p>
+      <div class="row" style="justify-content:center">
+        <label class="btn" for="file"><svg class="i" viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>Snap a photo</label>
+        <button class="btn ghost" id="liveBtn">Live camera</button>
+      </div>
+    </div>
+    <div class="stagebar" id="stagebar">
+      <label for="file"><svg class="i" viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>New photo</label>
+      <button id="handsBtn" hidden>Hands-free</button>
+      <button id="stopBtn">Close</button>
+    </div>
+    <div class="status" id="status" role="status"></div>
+  </div>
+  <input type="file" id="file" accept="image/*" capture="environment" hidden>
+  <div class="ask">
+    <button class="mic" id="askMic" aria-label="Ask by voice"><svg class="i" viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0M12 17v5"/></svg></button>
+    <input class="field" id="askIn" placeholder="How do you say car?" enterkeyhint="go">
+  </div>
+  <div id="sceneOut"></div>
+  <div id="askOut"></div>
+</section>
+
+<section class="panel" id="p-drill">
+  <h2>Repeat after me</h2>
+  <p class="sub">Hear it in <span class="ln">Spanish</span>, then English. Say it back. Then tell me what it means.</p>
+  <div id="drill"></div>
+</section>
+
+<section class="panel" id="p-talk">
+  <h2>Talk about your day</h2>
+  <p class="sub">Answer in <span class="ln">Spanish</span> if you can. In English if you can't, and I'll show you how to say it.</p>
+  <div class="row"><button class="btn" id="talkStart">Start a conversation</button><span class="note" id="talkCtx"></span></div>
+  <div class="chat" id="chat"></div>
+  <div class="ask" id="talkBar" hidden>
+    <button class="mic" id="talkMic" aria-label="Speak"><svg class="i" viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0M12 17v5"/></svg></button>
+    <input class="field" id="talkIn" placeholder="Your answer" enterkeyhint="send">
+  </div>
+</section>
+
+<section class="panel" id="p-subs">
+  <h2>Live subtitles</h2>
+  <p class="sub">Read what people say, in both languages. Then replay the conversation as a lesson.</p>
+  <div class="row"><span class="note">They're speaking</span><div class="seg" id="subSeg"><button data-v="en" aria-pressed="true">English</button><button data-v="t" aria-pressed="false" class="ln">Spanish</button></div></div>
+  <div class="row" style="margin-top:10px"><button class="btn" id="subMic">Start listening</button><button class="btn soft" id="subClear">Clear</button></div>
+  <p class="partial" id="subPartial"></p>
+  <div class="ask"><input class="field" id="subIn" placeholder="Or type what they said" enterkeyhint="done"><button class="btn soft" id="subAdd">Add</button></div>
+  <div class="card" id="subList"><p class="note" style="margin:0">Nothing heard yet. Lines show up here as people talk.</p></div>
+  <div class="row" style="margin-top:12px"><button class="btn" id="lessonBtn">Replay as a lesson</button><button class="btn soft" id="lessonPlay" hidden>Play all</button></div>
+  <div id="lesson"></div>
+</section>
+
+<section class="panel" id="p-words">
+  <h2>Words you've seen</h2>
+  <p class="sub">Every tag you see or ask about counts. The more you see it, the more it sticks.</p>
+  <div class="row"><button class="btn" id="wordsDrill">Quiz me on these</button><span class="note" id="wordsCount"></span></div>
+  <ul class="words" id="words"></ul>
+</section>
+</div>
+
+<nav class="tabs" role="tablist">
+  <button role="tab" data-t="look" aria-selected="true"><svg class="i" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>Look</button>
+  <button role="tab" data-t="drill" aria-selected="false"><svg class="i" viewBox="0 0 24 24"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>Drill</button>
+  <button role="tab" data-t="talk" aria-selected="false"><svg class="i" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Talk</button>
+  <button role="tab" data-t="subs" aria-selected="false"><svg class="i" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M7 15h4M13 15h4M7 11h10"/></svg>Subtitles</button>
+  <button role="tab" data-t="words" aria-selected="false"><svg class="i" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V2H6.5A2.5 2.5 0 0 0 4 4.5v15z"/><path d="M6.5 17A2.5 2.5 0 0 0 4 19.5 2.5 2.5 0 0 0 6.5 22H20v-5"/></svg>Words</button>
+</nav>
+
+<div class="sheet" id="sheet"><div role="dialog" aria-label="Settings">
+  <div class="row" style="justify-content:space-between"><h2 style="margin:0">Settings</h2><button class="btn soft" id="setClose">Done</button></div>
+  <div class="set"><label for="sLang">Learning</label><select class="field" id="sLang"></select></div>
+  <div class="set"><label for="sLvl">Level</label><select class="field" id="sLvl"></select>
+    <div class="sw"><input type="checkbox" id="sAuto"><label for="sAuto" style="font-weight:400">Level me up automatically as I get things right</label></div></div>
+  <div class="set"><label for="sMax">Tags on screen at once</label><select class="field" id="sMax"><option>3</option><option>5</option><option>8</option></select></div>
+  <div class="set"><label for="sOp">Tag see-through</label><input type="range" id="sOp" min=".35" max=".95" step=".05"></div>
+  <div class="set"><div class="sw"><input type="checkbox" id="sSpeak"><label for="sSpeak" style="font-weight:400">Say new words out loud as they appear (live camera)</label></div></div>
+  <div class="set"><label for="sRate">Speaking speed</label><input type="range" id="sRate" min=".6" max="1.2" step=".05"></div>
+  <div class="set" id="keySet"><label for="sKey">Anthropic API key</label><input class="field" id="sKey" type="password" autocomplete="off" placeholder="sk-ant-…"><p class="note" style="margin:0">Only needed when this page runs on its own website, outside Claude. Kept in this browser only.</p></div>
+  <div class="set"><button class="btn soft" id="resetBtn">Reset progress</button><div class="row" id="resetAsk" hidden><span>Erase words and level?</span><button class="btn" id="resetYes">Erase</button><button class="btn soft" id="resetNo">Keep</button></div></div>
+</div></div>
+<div id="toast" role="status"></div>
+
+<script>
+{
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const LANGS=[
+ {id:'es',name:'Spanish',nat:'Español',bcp:'es-MX'},
+ {id:'zh',name:'Mandarin Chinese',nat:'中文',bcp:'zh-CN',rom:'pinyin'},
+ {id:'hi',name:'Hindi',nat:'हिन्दी',bcp:'hi-IN',rom:'romanized'},
+ {id:'ar',name:'Arabic',nat:'العربية',bcp:'ar-SA',rom:'romanized'},
+ {id:'fr',name:'French',nat:'Français',bcp:'fr-FR'},
+ {id:'bn',name:'Bengali',nat:'বাংলা',bcp:'bn-IN',rom:'romanized'},
+ {id:'pt',name:'Portuguese',nat:'Português',bcp:'pt-BR'},
+ {id:'ru',name:'Russian',nat:'Русский',bcp:'ru-RU',rom:'romanized'},
+ {id:'id',name:'Indonesian',nat:'Bahasa Indonesia',bcp:'id-ID'},
+ {id:'ur',name:'Urdu',nat:'اردو',bcp:'ur-PK',rom:'romanized'}];
+const LEVELS=[
+ {n:'Baby',d:'single words and two-word phrases only: nouns, greetings, yes/no'},
+ {n:'Tarzan',d:'very short broken-but-understandable sentences (I + verb + thing), present tense only, simplest verb forms'},
+ {n:'Kid',d:'short complete present-tense sentences with correct verb endings and common everyday verbs'},
+ {n:'Teen',d:'past and future tenses, questions, and joining words like because, but, when'},
+ {n:'Local',d:'natural everyday speech, common idioms and casual expressions'}];
+const COCO=['person','bicycle','car','motorcycle','airplane','bus','train','truck','boat','traffic light','fire hydrant','stop sign','parking meter','bench','bird','cat','dog','horse','sheep','cow','elephant','bear','zebra','giraffe','backpack','umbrella','handbag','tie','suitcase','frisbee','skis','snowboard','sports ball','kite','baseball bat','baseball glove','skateboard','surfboard','tennis racket','bottle','wine glass','cup','fork','knife','spoon','bowl','banana','apple','sandwich','orange','broccoli','carrot','hot dog','pizza','donut','cake','chair','couch','potted plant','bed','dining table','toilet','tv','laptop','mouse','remote','keyboard','cell phone','microwave','oven','toaster','sink','refrigerator','book','clock','vase','scissors','teddy bear','hair drier','toothbrush'];
+const ES=['la persona','la bicicleta','el carro','la motocicleta','el avión','el autobús','el tren','el camión','el barco','el semáforo','el hidrante','la señal de alto','el parquímetro','la banca','el pájaro','el gato','el perro','el caballo','la oveja','la vaca','el elefante','el oso','la cebra','la jirafa','la mochila','el paraguas','la bolsa','la corbata','la maleta','el frisbi','los esquís','la tabla de nieve','la pelota','el papalote','el bate','el guante de béisbol','la patineta','la tabla de surf','la raqueta','la botella','la copa','la taza','el tenedor','el cuchillo','la cuchara','el tazón','el plátano','la manzana','el sándwich','la naranja','el brócoli','la zanahoria','el hot dog','la pizza','la dona','el pastel','la silla','el sofá','la planta','la cama','la mesa','el inodoro','la tele','la computadora portátil','el ratón','el control remoto','el teclado','el celular','el microondas','el horno','el tostador','el fregadero','el refrigerador','el libro','el reloj','el florero','las tijeras','el osito de peluche','la secadora de pelo','el cepillo de dientes'];
+const DRILL_ES={
+ 1:[['hola','hello'],['buenos días','good morning'],['gracias','thank you'],['por favor','please'],['adiós','goodbye'],['el agua','the water'],['la comida','the food'],['sí','yes'],['el perro','the dog'],['buenas noches','good night']],
+ 2:[['yo como huevos','I eat eggs'],['yo quiero agua','I want water'],['el carro es rojo','the car is red'],['¿dónde está el baño?','where is the bathroom?'],['tengo hambre','I am hungry'],['me llamo Mike','my name is Mike'],['¿cómo estás?','how are you?'],['estoy bien','I am fine'],['¿cuánto cuesta?','how much does it cost?'],['mi casa','my house']],
+ 3:[['estoy haciendo el desayuno','I am making breakfast'],['voy a la tienda','I am going to the store'],['me gusta el café','I like coffee'],['¿qué hora es?','what time is it?'],['el semáforo está en rojo','the traffic light is red'],['necesito un taxi','I need a taxi'],['hace frío hoy','it is cold today'],['trabajo de seis a seis','I work from six to six']],
+ 4:[['ayer comí tacos','yesterday I ate tacos'],['mañana voy a trabajar','tomorrow I am going to work'],['fui al parque con mi perro','I went to the park with my dog'],['¿ya desayunaste?','did you already have breakfast?'],['cuando era niño, jugaba fútbol','when I was a kid, I played soccer'],['no fui porque estaba cansado','I did not go because I was tired']],
+ 5:[['¡qué padre!','how cool!'],['no manches','no way'],['ahorita vengo','I will be right back'],['me da igual','I don\'t mind'],['ojalá que no llueva','hopefully it doesn\'t rain'],['está bien chido','it is really cool']]};
+
+const KEY='glosa.v1';
+const st={lang:'es',level:1,xp:0,auto:true,maxTags:5,op:.8,speakNew:true,rate:.9,key:'',words:{},vocab:{},bank:{}};
+try{Object.assign(st,JSON.parse(localStorage.getItem(KEY)||'{}'))}catch(e){}
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(st))}catch(e){}};
+const L=()=>LANGS.find(l=>l.id===st.lang)||LANGS[0];
+const LV=()=>LEVELS[st.level-1]||LEVELS[0];
+const romHint=()=>L().rom?`${L().rom} romanization`:'empty string';
+const words=()=>st.words[st.lang]||(st.words[st.lang]={});
+
+/* ---------- capabilities ---------- */
+const S={sample:null,dict:null,tts:null,img:false};
+const H={};
+if(window.claude&&claude.use){
+  claude.use('sample').then(async s=>{S.sample=s;if(s){try{S.img=!!(await s.limits()).images}catch(e){}}refreshAI()}).catch(()=>{});
+  claude.use('dictation').then(d=>{S.dict=d;if(d){d.onPartial(e=>H.partial&&H.partial(e.text));d.onFinal(e=>H.final&&H.final(e.text));d.onState(e=>{if(e.state!=='listening'&&H.end)H.end()})}}).catch(()=>{});
+  claude.use('tts').then(t=>{S.tts=t}).catch(()=>{});
+}
+const hasAI=()=>!!(S.sample||st.key);
+function refreshAI(){$('#keySet').hidden=!!S.sample}
+
+function parseJSON(t){t=String(t||'').replace(/```(json)?/g,'');const a=t.indexOf('{'),b=t.lastIndexOf('}');return JSON.parse(t.slice(a,b+1))}
+const b64=b=>new Promise(r=>{const f=new FileReader();f.onload=()=>r(String(f.result).split(',')[1]);f.readAsDataURL(b)});
+async function ask(prompt,{images,tier='quick'}={}){
+  const tail='\n\nReply with only the JSON object: no prose, no code fences.';
+  if(S.sample){const o={modelTier:tier,cache:false};if(images&&S.img)o.images=images;const r=await S.sample(prompt+tail,o);return parseJSON(r.text)}
+  if(st.key){
+    const content=[];if(images)for(const b of images)content.push({type:'image',source:{type:'base64',media_type:'image/jpeg',data:await b64(b)}});
+    content.push({type:'text',text:prompt+tail});
+    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'content-type':'application/json','x-api-key':st.key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-haiku-5-5',max_tokens:1500,messages:[{role:'user',content}]})});
+    if(!res.ok)throw{code:'api',message:'API error '+res.status};
+    const j=await res.json();return parseJSON((j.content||[]).map(c=>c.text||'').join(''));
+  }
+  throw{code:'no_ai'};
+}
+function aiErr(e){const c=e&&e.code;if(c==='no_ai')return'This needs AI. Open the page in Claude, or add an API key in Settings.';if(c==='not_granted')return'AI is switched off for this page.';if(c==='rate_limited')return'Too many requests. Give it a few seconds.';return'Something went wrong. Try again.'}
+
+/* ---------- speech out ---------- */
+let sayTok=0;
+function stopSay(){sayTok++;try{speechSynthesis.cancel()}catch(e){}try{S.tts&&S.tts.stop()}catch(e){}}
+async function say(lines){stopSay();const t=sayTok;for(const [text,bcp] of lines){if(t!==sayTok)return;if(text)await sayOne(text,bcp)}}
+function sayOne(text,bcp){return new Promise(res=>{let done=false;const fin=()=>{if(!done){done=true;res()}};
+  const ss=window.speechSynthesis;let vs=[];try{vs=ss?ss.getVoices():[]}catch(e){}
+  const lc=bcp.toLowerCase(),v=vs.find(x=>x.lang.replace('_','-').toLowerCase()===lc)||vs.find(x=>x.lang.toLowerCase().startsWith(lc.slice(0,2)));
+  if(ss&&(v||lc.startsWith('en')||!S.tts)){try{const u=new SpeechSynthesisUtterance(text);u.lang=bcp;if(v)u.voice=v;u.rate=st.rate;u.onend=fin;u.onerror=fin;ss.speak(u)}catch(e){fin()}setTimeout(fin,3000+text.length*160)}
+  else if(S.tts){S.tts.speak(text,{language:bcp,rate:Math.max(.7,st.rate)}).then(fin,fin)}else fin()})}
+const dora=(t,en)=>say([[t,L().bcp],[en,'en-US'],[t,L().bcp],[en,'en-US']]);
+const sayPair=(t,en)=>say([[t,L().bcp],[en,'en-US']]);
+
+/* ---------- speech in ---------- */
+let rec=null;
+function stopListen(){if(rec){const x=rec;rec=null;x.stop()}}
+function listen(btn,{lang,partial,final,cont}={}){
+  if(rec){stopListen();return}
+  const done=()=>{btn&&btn.classList.remove('on');if(btn&&btn.dataset.idle)btn.textContent=btn.dataset.idle;rec=null;H.partial=H.final=H.end=null};
+  const onBtn=()=>{if(!btn)return;btn.classList.add('on');if(btn.dataset.idle)btn.textContent='Stop listening'};
+  if(S.dict){H.partial=partial;H.final=final;H.end=done;
+    S.dict.start().catch(e=>{done();toast(e&&e.code==='not_granted'?'Voice is off for this page. Type instead.':'Voice input is not available here. Type instead.')});
+    rec={stop:()=>{S.dict.stop().catch(()=>{})}};onBtn();return}
+  const R=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!R){toast('Voice input is not available in this view. Type instead.');return}
+  const r=new R();r.lang=lang||'en-US';r.interimResults=true;r.continuous=!!cont;
+  r.onresult=e=>{for(let i=e.resultIndex;i<e.results.length;i++){const x=e.results[i],f=x.isFinal?final:partial;f&&f(x[0].transcript)}};
+  r.onerror=e=>{if(e.error==='not-allowed'){rec=null;toast('Microphone is blocked here. Type instead.')}};
+  r.onend=()=>{if(cont&&rec&&rec.r===r){try{r.start()}catch(e){done()}}else done()};
+  try{r.start()}catch(e){toast('Voice input is not available here.');return}
+  rec={r,stop:()=>r.stop()};onBtn();
+}
+let toastT;function toast(m){const t=$('#toast');t.textContent=m;t.style.display='block';clearTimeout(toastT);toastT=setTimeout(()=>t.style.display='none',3200)}
+
+/* ---------- words & xp ---------- */
+const lastBump={};let lastSpoke=0;
+function bump(it,{force,speak}={}){if(!it||!it.w)return;const W=words(),k=it.w,now=Date.now();const ex=W[k];
+  if(!force&&ex&&now-(lastBump[k]||0)<10000)return;lastBump[k]=now;
+  const isNew=!ex;W[k]={w:it.w,r:it.r||'',en:it.en||'',n:(ex?ex.n:0)+1,t:now};save();
+  if(speak&&st.speakNew&&(isNew||now-(ex.t||0)>60000)&&now-lastSpoke>4500){lastSpoke=now;sayPair(it.w,it.en)}}
+function addXP(n){st.xp+=n;if(st.auto&&st.xp>=100&&st.level<5){st.level++;st.xp=0;bank=null;toast(`Level up! You're now ${st.level} · ${LV().n}`)}if(st.level>=5)st.xp=Math.min(st.xp,100);save();chips()}
+let bank=null;
+
+/* ---------- header ---------- */
+function chips(){$('#langChip').textContent=L().nat;$('#lvlChip').innerHTML=`Lv ${st.level} · ${esc(LV().n)} <span class="bar"><i style="width:${Math.min(100,st.xp)}%"></i></span>`;
+  document.querySelectorAll('.ln').forEach(e=>e.textContent=L().name.split(' ')[0]);$('#emptyLang').textContent=L().name.split(' ')[0];
+  const d1=vocabFor('car'),d2=vocabFor('traffic light');$('#demo1').textContent=d1.w;$('#demo2').textContent=d2.w}
+
+/* ---------- tabs ---------- */
+document.querySelectorAll('nav.tabs button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('nav.tabs button').forEach(x=>x.setAttribute('aria-selected',x===b));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('on',p.id==='p-'+b.dataset.t));
+  if(b.dataset.t==='words')renderWords();if(b.dataset.t==='drill'&&!D)renderDrill();if(b.dataset.t==='talk')talkCtx();
+  if(b.dataset.t==='look')requestAnimationFrame(redraw);});
+
+/* ---------- LOOK ---------- */
+const vid=$('#vid'),still=$('#still'),tagsEl=$('#tags'),linesEl=$('#lines'),stage=$('#stage');
+let mode=null,cur=[],stream=null,model=null,hit={term:'',until:0},seenNow=[];
+function status(m){const s=$('#status');s.textContent=m;s.style.display=m?'block':'none'}
+function showStage(on){$('#empty').hidden=on;$('#stagebar').style.display=on?'flex':'none'}
+function vocabFor(cls){if(st.lang==='es'){const i=COCO.indexOf(cls);return{w:i>=0?ES[i]:cls,r:''}}const v=(st.vocab[st.lang]||{})[cls];return v?{w:v.w,r:v.r||''}:{w:cls,r:'',miss:true}}
+const isHit=it=>hit.until>Date.now()&&hit.term&&(it.en.toLowerCase().includes(hit.term)||hit.term.includes(it.en.toLowerCase())||it.w.toLowerCase()===hit.term);
+function placeTags(items,media){
+  const W=stage.clientWidth,Hh=stage.clientHeight,nw=media.videoWidth||media.naturalWidth,nh=media.videoHeight||media.naturalHeight;
+  if(!nw||!nh){tagsEl.innerHTML='';linesEl.innerHTML='';return}
+  const sc=Math.max(W/nw,Hh/nh),ox=(W-nw*sc)/2,oy=(Hh-nh*sc)/2;
+  const pts=items.slice(0,st.maxTags).map((it,i)=>({it,i,px:ox+it.x*nw*sc,py:oy+it.y*nh*sc})).filter(p=>p.px>=0&&p.px<=W&&p.py>=0&&p.py<=Hh);
+  for(const s of['l','r']){let y=8;pts.filter(p=>(p.px<W/2?'l':'r')===s).sort((a,b)=>a.py-b.py).forEach(p=>{p.s=s;p.ty=Math.max(y,Math.min(p.py-24,Hh-120));y=p.ty+58})}
+  stage.style.setProperty('--op',st.op);
+  tagsEl.innerHTML=pts.map(p=>`<button class="tag ${p.s}${isHit(p.it)?' hit':''}" data-i="${p.i}" style="top:${p.ty}px"><b dir="auto">${esc(p.it.w)}</b><small>${p.it.r?esc(p.it.r)+' · ':''}${esc(p.it.en)}</small></button>`).join('');
+  const a=.45+st.op/2;let svg='';
+  [...tagsEl.children].forEach((el,k)=>{const p=pts[k],ex=p.s==='l'?el.offsetLeft+el.offsetWidth:el.offsetLeft,ey=el.offsetTop+el.offsetHeight/2;
+    svg+=`<line x1="${ex}" y1="${ey}" x2="${p.px}" y2="${p.py}" stroke="rgba(255,255,255,${a})" stroke-width="1.5"/><circle cx="${p.px}" cy="${p.py}" r="5" fill="#ff5a36" stroke="#fff" stroke-width="2"/>`});
+  linesEl.innerHTML=svg}
+function redraw(){if(mode==='snap')placeTags(cur,still);}
+new ResizeObserver(()=>redraw()).observe(stage);
+tagsEl.addEventListener('pointerdown',e=>{const b=e.target.closest('.tag');if(!b)return;const it=cur[+b.dataset.i];if(!it)return;sayPair(it.w,it.en);bump(it,{force:true})});
+
+function loadScript(src){return new Promise((res,rej)=>{const s=document.createElement('script');s.src=src;s.onload=res;s.onerror=rej;document.head.appendChild(s)})}
+function stopLive(){mode=mode==='live'?null:mode;if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}vid.style.display='none';if(rec&&$('#handsBtn').classList.contains('on'))stopListen();$('#handsBtn').classList.remove('on')}
+$('#liveBtn').onclick=async()=>{
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){$('#emptyMsg').textContent='This view has no camera access. Use Snap a photo.';return}
+  try{stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'}},audio:false})}
+  catch(e){$('#emptyMsg').textContent='The live camera is blocked inside the Claude app, so use Snap a photo here. Live mode works when this page runs on its own website in Chrome.';return}
+  vid.srcObject=stream;vid.style.display='block';still.style.display='none';showStage(true);mode='live';cur=[];$('#sceneOut').innerHTML='';
+  $('#handsBtn').hidden=!(window.SpeechRecognition||window.webkitSpeechRecognition);
+  try{await vid.play()}catch(e){}
+  if(!model){status('Loading the object finder (first time only)…');
+    try{await loadScript('https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js');await loadScript('https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.3/dist/coco-ssd.min.js');model=await cocoSsd.load({base:'lite_mobilenet_v2'})}
+    catch(e){status('Could not load the object finder here. Use New photo instead.');return}}
+  ensureVocab();status('');tick()};
+async function tick(){if(mode!=='live'||!model)return;
+  try{const nw=vid.videoWidth,nh=vid.videoHeight;if(nw){const preds=await model.detect(vid,12,.55);
+    cur=preds.sort((a,b)=>b.bbox[2]*b.bbox[3]-a.bbox[2]*a.bbox[3]).map(p=>{const v=vocabFor(p.class);return{en:p.class,w:v.w,r:v.r,x:(p.bbox[0]+p.bbox[2]/2)/nw,y:(p.bbox[1]+p.bbox[3]/2)/nh}});
+    placeTags(cur,vid);seenNow=[...new Set(cur.map(c=>c.en))];cur.slice(0,st.maxTags).forEach(it=>bump(it,{speak:true}))}}catch(e){}
+  setTimeout(tick,300)}
+async function ensureVocab(){if(st.lang==='es'||st.vocab[st.lang]||!hasAI())return;const lang=st.lang;
+  try{const j=await ask(`Translate each English object name into ${L().name} the way a language learner would label it (include the article or gender marker if the language uses one). "r" is the ${romHint()}. JSON: {"items":[{"en":"car","w":"…","r":"…"}]} covering exactly these: ${COCO.join(', ')}`,{tier:'default'});
+    const m={};(j.items||[]).forEach(x=>{if(x&&x.en&&x.w)m[String(x.en).toLowerCase()]={w:String(x.w),r:String(x.r||'')}});st.vocab[lang]=m;save();chips()}catch(e){}}
+$('#stopBtn').onclick=()=>{stopLive();mode=null;cur=[];still.style.display='none';tagsEl.innerHTML='';linesEl.innerHTML='';status('');showStage(false)};
+$('#handsBtn').onclick=e=>{const b=e.currentTarget;if(b.classList.contains('on')){b.classList.remove('on');stopListen();return}
+  b.classList.add('on');toast('Listening. Say "Profe, how do you say…"');
+  listen(null,{lang:'en-US',cont:true,final:t=>{if(/profe|how do you say|what is .* in/i.test(t))runAsk(t.replace(/^.*?profe[,]?\s*/i,''))}})};
+
+$('#file').onchange=async()=>{const f=$('#file').files[0];$('#file').value='';if(!f)return;stopLive();
+  const url=URL.createObjectURL(f),img=new Image();img.src=url;try{await img.decode()}catch(e){status('Could not open that photo.');return}
+  const c=document.createElement('canvas'),k=Math.min(1,1280/Math.max(img.naturalWidth,img.naturalHeight));c.width=Math.round(img.naturalWidth*k);c.height=Math.round(img.naturalHeight*k);c.getContext('2d').drawImage(img,0,0,c.width,c.height);URL.revokeObjectURL(url);
+  const blob=await new Promise(r=>c.toBlob(r,'image/jpeg',.82));still.src=URL.createObjectURL(blob);try{await still.decode()}catch(e){}
+  still.style.display='block';showStage(true);mode='snap';cur=[];tagsEl.innerHTML='';linesEl.innerHTML='';$('#sceneOut').innerHTML='';
+  if(!hasAI()){status(aiErr({code:'no_ai'}));return}
+  if(S.sample&&!S.img){status('Photo reading is not available in this view.');return}
+  status('Reading the scene…');
+  try{const j=await ask(`You label a photo for someone learning ${L().name} at the ${LV().n} level (${LV().d}). Find up to ${Math.max(st.maxTags,6)} clearly visible, useful everyday things: vehicles, signs, street lights, roads, sidewalks, trees, buildings, food, furniture, clothes, people. For each: "en" English noun; "word" the ${L().name} word in its native script (with article or gender marker if the language uses one); "roman" the ${romHint()}; "x","y" the object's centre as fractions 0–1 of image width and height. Also "scene": one sentence in ${L().name} at their level about what is happening, "scene_roman", and "scene_en" in English. JSON: {"objects":[{"en":"","word":"","roman":"","x":0.5,"y":0.5}],"scene":"","scene_roman":"","scene_en":""}`,{images:[blob],tier:'default'});
+    cur=(j.objects||[]).filter(o=>o&&o.word).map(o=>({en:String(o.en||''),w:String(o.word),r:String(o.roman||''),x:Math.min(1,Math.max(0,+o.x||.5)),y:Math.min(1,Math.max(0,+o.y||.5))}));
+    status(cur.length?'':'No clear objects found. Try another angle.');placeTags(cur,still);cur.forEach(it=>bump(it,{force:true}));seenNow=cur.map(c=>c.en);
+    if(j.scene){$('#sceneOut').innerHTML=`<div class="card"><p class="kicker">What's happening</p><p class="tw" dir="auto">${esc(j.scene)}</p>${j.scene_roman?`<p class="rom">${esc(j.scene_roman)}</p>`:''}<p class="en">${esc(j.scene_en)}</p><button class="play" id="scenePlay">▶ Hear it</button></div>`;
+      $('#scenePlay').onclick=()=>dora(String(j.scene),String(j.scene_en||''));}}
+  catch(e){status(aiErr(e))}};
+
+function offline(term){term=term.toLowerCase();const i=COCO.findIndex(c=>c===term||term.includes(c));if(i<0)return null;const v=vocabFor(COCO[i]);return v.miss?null:{word:v.w,roman:v.r,en:COCO[i]}}
+async function runAsk(q){q=String(q).trim();if(!q)return;const out=$('#askOut');
+  const m=q.toLowerCase().match(/(?:how (?:do|would|can) (?:you|i) say|what(?:'s| is) (?:the word for)?|word for|say)\s+(?:an?\s+|the\s+)?(.+?)(?:\s+in\s+\w+)?[?.!]*$/);const term=(m?m[1]:q.toLowerCase()).trim();
+  hit={term,until:Date.now()+5000};redraw();
+  const show=j=>{const it={w:String(j.word||''),r:String(j.roman||''),en:String(j.en||term)};if(!it.w)return;
+    out.innerHTML=`<div class="card"><p class="kicker">You asked: ${esc(q)}</p><p class="tw big" dir="auto">${esc(it.w)}</p>${it.r?`<p class="rom">${esc(it.r)}</p>`:''}<p class="en">${esc(it.en)}</p>${j.example?`<p style="margin:12px 0 0" dir="auto"><b>${esc(j.example)}</b></p>${j.example_roman?`<p class="rom">${esc(j.example_roman)}</p>`:''}<p class="en">${esc(j.example_en)}</p>`:''}${j.tip?`<p class="note" style="margin-top:8px">${esc(j.tip)}</p>`:''}<button class="play" id="askPlay">▶ Hear it again</button></div>`;
+    $('#askPlay').onclick=()=>dora(it.w,it.en);hit={term:it.en.toLowerCase(),until:Date.now()+5000};redraw();bump(it,{force:true});dora(it.w,it.en)};
+  if(!hasAI()){const v=offline(term);if(v)show(v);else out.innerHTML=`<div class="warn">${esc(aiErr({code:'no_ai'}))}</div>`;return}
+  out.innerHTML='<div class="card note">Looking it up…</div>';
+  try{show(await ask(`A ${LV().n}-level learner of ${L().name} (${LV().d}) asks: "${q}". If they want to say something, give it in ${L().name}. If they ask what a ${L().name} word means, explain it. JSON: {"word":"the ${L().name} answer in native script","roman":"${romHint()}","en":"English meaning","example":"one short example sentence at their level using it","example_roman":"","example_en":"","tip":"one short English tip on gender, pronunciation or usage, or empty"}`))}
+  catch(e){out.innerHTML=`<div class="warn">${esc(aiErr(e))}</div>`}}
+$('#askIn').addEventListener('keydown',e=>{if(e.key==='Enter'){runAsk(e.target.value);e.target.value=''}});
+$('#askMic').onclick=e=>listen(e.currentTarget,{lang:'en-US',partial:t=>$('#askIn').value=t,final:t=>{$('#askIn').value='';stopListen();runAsk(t)}});
+
+/* ---------- DRILL ---------- */
+let D=null;
+const norm=s=>String(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^\p{L}\p{M}\p{N} ]/gu,'').replace(/\s+/g,' ').trim();
+function sim(a,b){a=norm(a);b=norm(b);if(!a||!b)return 0;let p=Array.from({length:b.length+1},(_,j)=>j);for(let i=1;i<=a.length;i++){const q=[i];for(let j=1;j<=b.length;j++)q[j]=Math.min(p[j]+1,q[j-1]+1,p[j-1]+(a[i-1]===b[j-1]?0:1));p=q}return 1-p[b.length]/Math.max(a.length,b.length)}
+const shuffle=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
+async function getBank(){if(bank)return bank;
+  if(st.lang==='es')return bank=DRILL_ES[st.level].map(([t,en])=>({t,r:'',en}));
+  const k=st.lang+st.level;if(st.bank[k])return bank=st.bank[k];
+  const j=await ask(`Write 10 short, useful phrases for a ${LV().n}-level learner of ${L().name} (${LV().d}). Everyday life: greetings, food, home, the street, work. JSON: {"items":[{"t":"phrase in native script","r":"${romHint()}","en":"English meaning"}]}`,{tier:'default'});
+  st.bank[k]=(j.items||[]).filter(x=>x&&x.t&&x.en).slice(0,10).map(x=>({t:String(x.t),r:String(x.r||''),en:String(x.en)}));save();return bank=st.bank[k]}
+async function drillStart(src){const el=$('#drill');let b;
+  if(src==='words'){b=Object.values(words()).filter(x=>x.en).map(x=>({t:x.w,r:x.r,en:x.en}));if(b.length<4){el.innerHTML='<div class="warn">See at least 4 words first: snap a photo or ask how to say something.</div>';return}}
+  else{el.innerHTML='<div class="card note">Getting phrases ready…</div>';try{b=await getBank()}catch(e){el.innerHTML=`<div class="warn">${esc(aiErr(e))}</div>`;return}}
+  D={pool:b,items:shuffle(b).slice(0,5),i:0,score:0,xp:0,phase:'hear'};renderDrill()}
+function renderDrill(){const el=$('#drill');
+  if(!D){const n=Object.keys(words()).length;el.innerHTML=`<div class="card"><p class="kicker">Level ${st.level} · ${esc(LV().n)}</p><p style="margin:0 0 12px">${esc(LV().d[0].toUpperCase()+LV().d.slice(1))}.</p><div class="row"><button class="btn" id="dPh">Phrases at my level</button><button class="btn soft" id="dWd">Words I've seen (${n})</button></div></div>`;
+    $('#dPh').onclick=()=>drillStart('phr');$('#dWd').onclick=()=>drillStart('words');return}
+  const it=D.items[D.i],prog=`<div class="prog">${D.items.map((_,k)=>`<i class="${k<D.i?'d':''}"></i>`).join('')}</div>`;
+  const head=`<p class="tw big" dir="auto">${esc(it.t)}</p>${it.r?`<p class="rom">${esc(it.r)}</p>`:''}`;
+  if(D.phase==='hear'){el.innerHTML=`<div class="card">${prog}<p class="kicker">Listen</p>${head}<p class="en">${esc(it.en)}</p><div class="row" style="margin-top:12px"><button class="btn soft" id="dAgain">▶ Hear it again</button><button class="btn" id="dTurn">My turn</button></div></div>`;
+    $('#dAgain').onclick=()=>dora(it.t,it.en);$('#dTurn').onclick=()=>{D.phase='say';renderDrill()};dora(it.t,it.en)}
+  else if(D.phase==='say'){el.innerHTML=`<div class="card">${prog}<p class="kicker">Say it out loud</p>${head}<div class="ask"><button class="mic" id="dMic" aria-label="Speak"><svg class="i" viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0M12 17v5"/></svg></button><input class="field" id="dIn" placeholder="or type it"></div><div class="row" style="margin-top:10px"><button class="btn" id="dChk">Check</button><button class="btn soft" id="dSelf">I said it</button></div><p class="fb" id="dFb"></p></div>`;
+    const check=v=>{const s=sim(v,it.t),fb=$('#dFb');if(s>=.7){fb.className='fb ok';fb.textContent=s>.92?'Perfect!':'Close enough. Nice!';D.xp+=10;addXP(10);setTimeout(()=>{D.phase='mean';renderDrill()},900)}else{fb.className='fb no';fb.textContent=`I heard "${v}". Listen once more and try again.`;sayPair(it.t,it.en)}};
+    $('#dMic').onclick=e=>listen(e.currentTarget,{lang:L().bcp,partial:t=>$('#dIn').value=t,final:t=>{$('#dIn').value=t;stopListen();check(t)}});
+    $('#dChk').onclick=()=>check($('#dIn').value);$('#dIn').onkeydown=e=>{if(e.key==='Enter')check(e.target.value)};
+    $('#dSelf').onclick=()=>{D.xp+=4;addXP(4);D.phase='mean';renderDrill()}}
+  else if(D.phase==='mean'){const opts=shuffle([it.en,...shuffle(D.pool.filter(x=>x.en!==it.en)).slice(0,3).map(x=>x.en)]);
+    el.innerHTML=`<div class="card">${prog}<p class="kicker">What does it mean?</p>${head}<div class="choices">${opts.map((o,k)=>`<button class="choice" data-k="${k}">${esc(o)}</button>`).join('')}</div><p class="fb" id="dFb"></p></div>`;
+    el.querySelectorAll('.choice').forEach(b=>b.onclick=()=>{if(D.answered)return;D.answered=true;const ok=opts[+b.dataset.k]===it.en;
+      el.querySelectorAll('.choice').forEach(x=>{if(opts[+x.dataset.k]===it.en)x.classList.add('ok')});if(!ok)b.classList.add('no');
+      const fb=$('#dFb');fb.className='fb '+(ok?'ok':'no');fb.textContent=ok?'¡Sí! That\'s it.':`It means "${it.en}".`;if(ok){D.score++;D.xp+=10;addXP(10)}
+      bump({w:it.t,r:it.r,en:it.en},{force:true});sayPair(it.t,it.en);
+      const nb=document.createElement('button');nb.className='btn';nb.style.marginTop='12px';nb.textContent=D.i<D.items.length-1?'Next':'Finish';nb.onclick=()=>{D.answered=false;D.i++;D.phase=D.i<D.items.length?'hear':'done';renderDrill()};fb.after(nb)})}
+  else{el.innerHTML=`<div class="card"><p class="kicker">Round done</p><p class="tw big">${D.score} / ${D.items.length}</p><p class="en">+${D.xp} points · Level ${st.level} · ${esc(LV().n)} · ${st.level<5?(100-st.xp)+' to next level':'top level'}</p><div class="row" style="margin-top:12px"><button class="btn" id="dRe">Another round</button><button class="btn soft" id="dBack">Change drill</button></div></div>`;
+    $('#dRe').onclick=()=>{D={...D,items:shuffle(D.pool).slice(0,5),i:0,score:0,xp:0,phase:'hear'};renderDrill()};$('#dBack').onclick=()=>{D=null;renderDrill()}}}
+
+/* ---------- TALK ---------- */
+let chat=[];
+const tod=()=>{const h=new Date().getHours();return h<12?'morning':h<18?'afternoon':'evening'};
+function ctx(){const seen=seenNow.length?seenNow:Object.values(words()).sort((a,b)=>b.t-a.t).slice(0,6).map(w=>w.en);return`It is ${tod()}. ${seen.length?'Things the learner can see or saw recently: '+seen.join(', ')+'.':''}`}
+function talkCtx(){const s=seenNow.length?seenNow:[];$('#talkCtx').textContent=s.length?'Using what you just saw: '+s.slice(0,4).join(', '):''}
+function renderChat(){$('#chat').innerHTML=chat.map((m,k)=>m.who==='me'?`<div class="msg me">${esc(m.text)}</div>`:m.wait?`<div class="msg ai note">…</div>`:m.err?`<div class="warn">${esc(m.err)}</div>`:
+  `<div class="msg ai">${m.how_to_say?`<div class="fix" style="margin:0 0 8px"><span class="note">Say it like this:</span><br><b dir="auto">${esc(m.how_to_say)}</b>${m.how_to_say_roman?`<br><span class="rom">${esc(m.how_to_say_roman)}</span>`:''}</div>`:''}${m.correction&&m.correction.better?`<div class="fix" style="margin:0 0 8px"><span class="note">You said</span> <s>${esc(m.correction.said)}</s><br><b dir="auto">${esc(m.correction.better)}</b><br><span class="note">${esc(m.correction.why)}</span></div>`:''}<p class="tw" dir="auto">${esc(m.reply)}</p>${m.reply_roman?`<p class="rom">${esc(m.reply_roman)}</p>`:''}<p class="en">${esc(m.reply_en)}</p><button class="play" data-k="${k}">▶ Hear it</button></div>`).join('');
+  $('#chat').querySelectorAll('.play').forEach(b=>b.onclick=()=>{const m=chat[+b.dataset.k];dora(m.reply,m.reply_en)});
+  $('#talkBar').hidden=!chat.length}
+async function talkSend(text,opener){text=String(text||'').trim();if(!text&&!opener)return;if(!opener)chat.push({who:'me',text});
+  const wait={who:'ai',wait:true};chat.push(wait);renderChat();
+  const hist=chat.filter(m=>!m.wait&&!m.err).slice(-12).map(m=>m.who==='me'?`Learner: ${m.text}`:`Tutor: ${m.reply} (${m.reply_en})`).join('\n');
+  const p=`You are a warm, playful ${L().name} tutor inside a learn-from-the-world app, chatting with a ${LV().n}-level learner (${LV().d}). ${ctx()}
+Rules: speak ${L().name} at exactly their level, 1–2 short sentences about what they are doing or what is around them, and usually end with a simple question. If the learner wrote in English, put their message in ${L().name} at their level in how_to_say. If they wrote ${L().name} with mistakes, fill correction with what they said, the better version, and why in one short English line; otherwise correction is null. good is true when they wrote correct ${L().name}. Romanization fields are the ${romHint()}.
+${opener?'Start the conversation: greet them for the time of day and ask about what they are doing.':'Conversation so far:\n'+hist}
+JSON: {"reply":"","reply_roman":"","reply_en":"","how_to_say":"","how_to_say_roman":"","correction":null,"good":false}`;
+  try{if(!hasAI())throw{code:'no_ai'};const j=await ask(p,{tier:'default'});const m={who:'ai',reply:String(j.reply||''),reply_roman:String(j.reply_roman||''),reply_en:String(j.reply_en||''),how_to_say:String(j.how_to_say||''),how_to_say_roman:String(j.how_to_say_roman||''),correction:j.correction&&typeof j.correction==='object'?{said:String(j.correction.said||''),better:String(j.correction.better||''),why:String(j.correction.why||'')}:null};
+    chat[chat.indexOf(wait)]=m;renderChat();if(j.good===true)addXP(8);dora(m.reply,m.reply_en)}
+  catch(e){chat[chat.indexOf(wait)]={who:'ai',err:aiErr(e)};renderChat()}}
+$('#talkStart').onclick=()=>{chat=[];talkCtx();talkSend('',true)};
+$('#talkIn').addEventListener('keydown',e=>{if(e.key==='Enter'){talkSend(e.target.value);e.target.value=''}});
+$('#talkMic').onclick=e=>listen(e.currentTarget,{lang:L().bcp,partial:t=>$('#talkIn').value=t,final:t=>{$('#talkIn').value='';stopListen();talkSend(t)}});
+
+/* ---------- SUBTITLES ---------- */
+let subs=[],subFrom='en',lessonLines=[];
+$('#subMic').dataset.idle='Start listening';
+$('#subSeg').querySelectorAll('button').forEach(b=>b.onclick=()=>{subFrom=b.dataset.v;$('#subSeg').querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b))});
+function renderSubs(){$('#subList').innerHTML=subs.length?subs.map(s=>`<div class="line"><p class="o" dir="auto">${esc(s.o)}</p><p class="t" dir="auto">${s.t?esc(s.t):'<span class="note">translating…</span>'}</p>${s.r?`<p class="rom">${esc(s.r)}</p>`:''}</div>`).join(''):'<p class="note" style="margin:0">Nothing heard yet. Lines show up here as people talk.</p>'}
+async function addSub(text){text=String(text||'').trim();if(!text)return;const line={o:text,from:subFrom};subs.push(line);renderSubs();
+  if(!hasAI()){line.t=' ';renderSubs();return}
+  try{const j=line.from==='en'?await ask(`Translate what this person said into natural ${L().name}. "r" is the ${romHint()}. Text: "${text}". JSON: {"t":"","r":""}`):await ask(`Translate this ${L().name} speech into natural English. "r" is the ${romHint()} of the original. Text: "${text}". JSON: {"t":"","r":""}`);
+    line.t=String(j.t||'');line.r=String(j.r||'')}catch(e){line.t='(could not translate)'}renderSubs()}
+$('#subMic').onclick=e=>listen(e.currentTarget,{lang:subFrom==='en'?'en-US':L().bcp,cont:true,partial:t=>$('#subPartial').textContent=t,final:t=>{$('#subPartial').textContent='';addSub(t)}});
+$('#subAdd').onclick=()=>{addSub($('#subIn').value);$('#subIn').value=''};$('#subIn').addEventListener('keydown',e=>{if(e.key==='Enter')$('#subAdd').click()});
+$('#subClear').onclick=()=>{subs=[];lessonLines=[];renderSubs();$('#lesson').innerHTML='';$('#lessonPlay').hidden=true};
+$('#lessonBtn').onclick=async()=>{const out=$('#lesson');if(!subs.length){out.innerHTML='<div class="warn">Capture or type a few lines of conversation first.</div>';return}
+  out.innerHTML='<div class="card note">Rebuilding the conversation at your level…</div>';
+  try{const j=await ask(`Here is a real conversation the learner just heard, in order:\n${subs.map(s=>'- '+s.o).join('\n')}\nRedo it as a short ${L().name} dialogue at the learner's ${LV().n} level (${LV().d}). "them" says what the other person said, simplified to the level; "you" is how the learner could answer. 4 to 8 lines. "r" is the ${romHint()}. JSON: {"lines":[{"who":"them","t":"","r":"","en":""}]}`,{tier:'default'});
+    lessonLines=(j.lines||[]).filter(l=>l&&l.t).map(l=>({who:l.who==='you'?'you':'them',t:String(l.t),r:String(l.r||''),en:String(l.en||'')}));
+    out.innerHTML=`<div class="card"><p class="kicker">The same talk, in ${esc(L().name.split(' ')[0])} at your level</p>${lessonLines.map((l,k)=>`<div class="line"><span class="who ${l.who}">${l.who==='you'?'YOU':'THEM'}</span><p class="t" dir="auto">${esc(l.t)}</p>${l.r?`<p class="rom">${esc(l.r)}</p>`:''}<p class="en">${esc(l.en)}</p><button class="play" data-k="${k}">▶ Hear it</button></div>`).join('')}</div>`;
+    out.querySelectorAll('.play').forEach(b=>b.onclick=()=>{const l=lessonLines[+b.dataset.k];dora(l.t,l.en)});$('#lessonPlay').hidden=!lessonLines.length}
+  catch(e){out.innerHTML=`<div class="warn">${esc(aiErr(e))}</div>`}};
+$('#lessonPlay').onclick=()=>say(lessonLines.flatMap(l=>[[l.t,L().bcp],[l.en,'en-US']]));
+
+/* ---------- WORDS ---------- */
+function renderWords(){const list=Object.values(words()).sort((a,b)=>b.n-a.n||b.t-a.t);$('#wordsCount').textContent=list.length?list.length+' words':'';
+  $('#words').innerHTML=list.length?list.map((w,k)=>`<li><div><div class="tw" dir="auto">${esc(w.w)}</div><div class="meta">${w.r?esc(w.r)+' · ':''}${esc(w.en)}</div></div><span class="count">seen ${w.n}×</span><button class="iconbtn" data-k="${k}" aria-label="Hear ${esc(w.en)}"><svg class="i" viewBox="0 0 24 24"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/></svg></button></li>`).join(''):'<li class="note">No words yet. Snap a photo on the Look tab and tap the tags.</li>';
+  $('#words').querySelectorAll('.iconbtn').forEach(b=>b.onclick=()=>{const w=list[+b.dataset.k];sayPair(w.w,w.en);bump(w,{force:true});renderWords()})}
+$('#wordsDrill').onclick=()=>{document.querySelector('nav.tabs [data-t=drill]').click();drillStart('words')};
+
+/* ---------- SETTINGS ---------- */
+$('#sLang').innerHTML=LANGS.map(l=>`<option value="${l.id}">${esc(l.name)} · ${esc(l.nat)}</option>`).join('');
+$('#sLvl').innerHTML=LEVELS.map((l,i)=>`<option value="${i+1}">${i+1} · ${esc(l.n)}</option>`).join('');
+function openSet(){$('#sLang').value=st.lang;$('#sLvl').value=st.level;$('#sAuto').checked=st.auto;$('#sMax').value=st.maxTags;$('#sOp').value=st.op;$('#sSpeak').checked=st.speakNew;$('#sRate').value=st.rate;$('#sKey').value=st.key;$('#resetAsk').hidden=true;$('#sheet').classList.add('on')}
+['#setBtn','#langChip','#lvlChip'].forEach(s=>$(s).onclick=openSet);
+$('#setClose').onclick=()=>$('#sheet').classList.remove('on');
+$('#sheet').onclick=e=>{if(e.target.id==='sheet')$('#sheet').classList.remove('on')};
+$('#sLang').onchange=e=>{st.lang=e.target.value;bank=null;D=null;chat=[];renderChat();renderDrill();save();chips();ensureVocab();redraw()};
+$('#sLvl').onchange=e=>{st.level=+e.target.value;st.xp=0;bank=null;D=null;renderDrill();save();chips()};
+$('#sAuto').onchange=e=>{st.auto=e.target.checked;save()};
+$('#sMax').onchange=e=>{st.maxTags=+e.target.value;save();redraw()};
+$('#sOp').oninput=e=>{st.op=+e.target.value;save();redraw()};
+$('#sSpeak').onchange=e=>{st.speakNew=e.target.checked;save()};
+$('#sRate').oninput=e=>{st.rate=+e.target.value;save()};
+$('#sKey').onchange=e=>{st.key=e.target.value.trim();save();ensureVocab()};
+$('#resetBtn').onclick=()=>$('#resetAsk').hidden=false;$('#resetNo').onclick=()=>$('#resetAsk').hidden=true;
+$('#resetYes').onclick=()=>{st.words={};st.xp=0;st.level=1;st.bank={};bank=null;D=null;save();chips();renderWords();renderDrill();$('#resetAsk').hidden=true;toast('Progress erased')};
+document.addEventListener('keydown',e=>{if(e.key==='Escape')$('#sheet').classList.remove('on')});
+
+try{speechSynthesis.getVoices();speechSynthesis.onvoiceschanged=()=>{}}catch(e){}
+chips();renderDrill();renderSubs();refreshAI();
+}
+</script>
+</body>
+</html>
